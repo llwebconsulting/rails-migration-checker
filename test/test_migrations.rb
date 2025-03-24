@@ -29,7 +29,9 @@ module Migrations
 
     def test_validates_migration_files
       create_test_migrations
+
       @validator.validate
+
       assert_empty @validator.errors
     end
 
@@ -40,6 +42,7 @@ module Migrations
       rescue Error
         # Expected error
       end
+
       assert_includes @validator.errors, "20240101000000_create_users.rb: Missing down method for rollback"
     end
 
@@ -50,6 +53,7 @@ module Migrations
       rescue Error
         # Expected error
       end
+
       assert_includes @validator.errors, "20240101000000_create_users.rb: Missing timestamps"
     end
 
@@ -60,6 +64,31 @@ module Migrations
       rescue Error
         # Expected error
       end
+
+      assert_includes @validator.errors, "20240101000001_create_posts.rb: Missing foreign key for author_id"
+    end
+
+    def test_valid_migration
+      @validator.validate_file(@valid_migration)
+
+      assert_empty @validator.errors
+    end
+
+    def test_missing_down_method
+      @validator.validate_file(@missing_down_migration)
+
+      assert_includes @validator.errors, "20240101000000_create_users.rb: Missing down method for rollback"
+    end
+
+    def test_missing_timestamps
+      @validator.validate_file(@missing_timestamps_migration)
+
+      assert_includes @validator.errors, "20240101000000_create_users.rb: Missing timestamps"
+    end
+
+    def test_missing_foreign_key
+      @validator.validate_file(@missing_foreign_key_migration)
+
       assert_includes @validator.errors, "20240101000001_create_posts.rb: Missing foreign key for author_id"
     end
 

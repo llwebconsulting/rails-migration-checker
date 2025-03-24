@@ -55,7 +55,13 @@ module Migrations
 
     def validate_file_structure(file, content)
       @errors << "#{file.basename}: Missing class definition" unless content.include?("class")
-      @errors << "#{file.basename}: Missing 'up' method" unless content.include?("def change") || content.include?("def up")
+      validate_up_method(file, content)
+    end
+
+    def validate_up_method(file, content)
+      has_change = content.include?("def change")
+      has_up = content.include?("def up")
+      @errors << "#{file.basename}: Missing 'up' method" unless has_change || has_up
     end
 
     def validate_methods(file, content)
@@ -71,7 +77,9 @@ module Migrations
     end
 
     def validate_foreign_keys(file, content)
-      return unless content.match?(/\s+t\.integer\s+:author_id\b/) && !content.match?(/\s+t\.references\s+:author.*foreign_key/)
+      has_author_id = content.match?(/\s+t\.integer\s+:author_id\b/)
+      has_references = content.match?(/\s+t\.references\s+:author.*foreign_key/)
+      return unless has_author_id && !has_references
 
       @errors << "#{file.basename}: Missing foreign key for author_id"
     end
