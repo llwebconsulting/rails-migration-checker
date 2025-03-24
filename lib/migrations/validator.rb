@@ -24,7 +24,7 @@ module Migrations
       raise Error, @errors.join("\n") if @errors.any?
     end
 
-    def validate_migration_file(file)
+    def validate_file(file)
       content = file.read
       validate_file_structure(file, content)
       validate_methods(file, content)
@@ -49,7 +49,7 @@ module Migrations
       end
 
       migration_files.each do |file|
-        validate_migration_file(file)
+        validate_file(file)
       end
     end
 

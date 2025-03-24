@@ -43,7 +43,7 @@ module Migrations
         # Expected error
       end
 
-      assert_includes @validator.errors, "20240101000000_create_users.rb: Missing down method for rollback"
+      assert_includes @validator.errors, "20240101000001_create_users_no_down.rb: Missing down method for rollback"
     end
 
     def test_detects_missing_timestamps
@@ -54,7 +54,7 @@ module Migrations
         # Expected error
       end
 
-      assert_includes @validator.errors, "20240101000000_create_users.rb: Missing timestamps"
+      assert_includes @validator.errors, "20240101000002_create_users_no_timestamps.rb: Missing timestamps"
     end
 
     def test_detects_missing_foreign_keys
@@ -65,56 +65,64 @@ module Migrations
         # Expected error
       end
 
-      assert_includes @validator.errors, "20240101000001_create_posts.rb: Missing foreign key for author_id"
+      assert_includes @validator.errors, "20240101000003_create_posts_no_fk.rb: Missing foreign key for author_id"
     end
 
     def test_valid_migration
+      create_users_migration("20240101000000_create_users.rb")
+      @valid_migration = @migrations_dir.join("20240101000000_create_users.rb")
       @validator.validate_file(@valid_migration)
 
       assert_empty @validator.errors
     end
 
     def test_missing_down_method
+      create_users_migration_without_down("20240101000001_create_users_no_down.rb")
+      @missing_down_migration = @migrations_dir.join("20240101000001_create_users_no_down.rb")
       @validator.validate_file(@missing_down_migration)
 
-      assert_includes @validator.errors, "20240101000000_create_users.rb: Missing down method for rollback"
+      assert_includes @validator.errors, "20240101000001_create_users_no_down.rb: Missing down method for rollback"
     end
 
     def test_missing_timestamps
+      create_users_migration_without_timestamps("20240101000002_create_users_no_timestamps.rb")
+      @missing_timestamps_migration = @migrations_dir.join("20240101000002_create_users_no_timestamps.rb")
       @validator.validate_file(@missing_timestamps_migration)
 
-      assert_includes @validator.errors, "20240101000000_create_users.rb: Missing timestamps"
+      assert_includes @validator.errors, "20240101000002_create_users_no_timestamps.rb: Missing timestamps"
     end
 
     def test_missing_foreign_key
+      create_posts_migration_without_foreign_keys("20240101000003_create_posts_no_fk.rb")
+      @missing_foreign_key_migration = @migrations_dir.join("20240101000003_create_posts_no_fk.rb")
       @validator.validate_file(@missing_foreign_key_migration)
 
-      assert_includes @validator.errors, "20240101000001_create_posts.rb: Missing foreign key for author_id"
+      assert_includes @validator.errors, "20240101000003_create_posts_no_fk.rb: Missing foreign key for author_id"
     end
 
     private
 
     def create_test_migrations
-      create_users_migration
-      create_posts_migration
+      create_users_migration("20240101000000_create_users.rb")
+      create_posts_migration("20240101000001_create_posts.rb")
     end
 
     def create_test_migrations_without_down
-      create_users_migration_without_down
-      create_posts_migration
+      create_users_migration_without_down("20240101000001_create_users_no_down.rb")
+      create_posts_migration("20240101000002_create_posts.rb")
     end
 
     def create_test_migrations_without_timestamps
-      create_users_migration_without_timestamps
-      create_posts_migration
+      create_users_migration_without_timestamps("20240101000002_create_users_no_timestamps.rb")
+      create_posts_migration("20240101000003_create_posts.rb")
     end
 
     def create_test_migrations_without_foreign_keys
-      create_users_migration
-      create_posts_migration_without_foreign_keys
+      create_users_migration("20240101000000_create_users.rb")
+      create_posts_migration_without_foreign_keys("20240101000003_create_posts_no_fk.rb")
     end
 
-    def create_users_migration
+    def create_users_migration(filename)
       content = <<~RUBY
         class CreateUsers < ActiveRecord::Migration[7.0]
           def change
@@ -130,10 +138,10 @@ module Migrations
           end
         end
       RUBY
-      write_migration("20240101000000_create_users.rb", content)
+      write_migration(filename, content)
     end
 
-    def create_users_migration_without_down
+    def create_users_migration_without_down(filename)
       content = <<~RUBY
         class CreateUsers < ActiveRecord::Migration[7.0]
           def change
@@ -145,10 +153,10 @@ module Migrations
           end
         end
       RUBY
-      write_migration("20240101000000_create_users.rb", content)
+      write_migration(filename, content)
     end
 
-    def create_users_migration_without_timestamps
+    def create_users_migration_without_timestamps(filename)
       content = <<~RUBY
         class CreateUsers < ActiveRecord::Migration[7.0]
           def change
@@ -163,10 +171,10 @@ module Migrations
           end
         end
       RUBY
-      write_migration("20240101000000_create_users.rb", content)
+      write_migration(filename, content)
     end
 
-    def create_posts_migration
+    def create_posts_migration(filename)
       content = <<~RUBY
         class CreatePosts < ActiveRecord::Migration[7.0]
           def change
@@ -183,10 +191,10 @@ module Migrations
           end
         end
       RUBY
-      write_migration("20240101000001_create_posts.rb", content)
+      write_migration(filename, content)
     end
 
-    def create_posts_migration_without_foreign_keys
+    def create_posts_migration_without_foreign_keys(filename)
       content = <<~RUBY
         class CreatePosts < ActiveRecord::Migration[7.0]
           def change
@@ -203,7 +211,7 @@ module Migrations
           end
         end
       RUBY
-      write_migration("20240101000001_create_posts.rb", content)
+      write_migration(filename, content)
     end
 
     def write_migration(filename, content)
