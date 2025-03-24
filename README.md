@@ -9,7 +9,9 @@ A Ruby gem to validate Rails migrations in CI, helping catch common migration is
 - Detects potential data loss issues (e.g., `drop_table` without `create_table`)
 - Validates migration version sequence
 - Checks for gaps in migration versions
-- (Coming soon) Validates migration dependencies and reversibility
+- Safe tools to fix common migration issues
+- Analyzes migration dependencies and detects circular dependencies
+- Validates migration reversibility
 
 ## Installation
 
@@ -45,6 +47,44 @@ $ migrations validate path/to/migrations
 # Enable strict validation mode
 $ migrations validate --strict
 ```
+
+### Rake Tasks
+
+The gem provides several rake tasks to help fix common migration issues safely:
+
+```bash
+# Analyze migrations for potential issues
+$ rake migrations:analyze
+
+# Fix missing down methods by adding safe defaults
+$ rake migrations:fix_missing_down
+
+# Check for version gaps in migrations
+$ rake migrations:fix_version_gaps
+
+# Check for potential data loss in migrations
+$ rake migrations:check_data_loss
+
+# Generate a backup of all migrations
+$ rake migrations:backup_plan
+
+# Fix missing timestamps in tables
+$ rake migrations:fix_missing_timestamps
+
+# Fix missing foreign key constraints
+$ rake migrations:fix_missing_foreign_keys
+
+# Analyze migration dependencies
+$ rake migrations:analyze_dependencies
+```
+
+#### Important Notes About Rake Tasks
+
+1. **Safety First**: All tasks that modify migrations will create backups before making changes
+2. **Review Required**: Always review the changes before committing them
+3. **Production Warning**: Be extra careful when fixing migrations that have been applied to production
+4. **Backup**: Always create a backup of your migrations before running any fix tasks
+5. **Dependencies**: The `analyze_dependencies` task can help identify circular dependencies and ensure proper migration ordering
 
 ### In CI
 
