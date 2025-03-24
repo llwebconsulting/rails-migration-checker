@@ -5,8 +5,8 @@ require_relative "lib/migrations/version"
 Gem::Specification.new do |spec|
   spec.name = "migrations"
   spec.version = Migrations::VERSION
-  spec.authors = ["Carl Mercier"]
-  spec.email = ["foss@carlmercier.com"]
+  spec.authors = ["Carl Smith"]
+  spec.email = ["carl@llweb.biz"]
 
   spec.summary = "A collection of tools to help manage Rails migrations"
   spec.description = "A collection of tools to help manage Rails migrations"

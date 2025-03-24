@@ -5,6 +5,7 @@ require "migrations/validator"
 require "tempfile"
 require "pathname"
 require "fileutils"
+require "pry-byebug"
 
 module Migrations
   class TestValidator < Minitest::Test
@@ -28,25 +29,37 @@ module Migrations
 
     def test_validates_migration_files
       create_test_migrations
-
+      @validator.validate
       assert_empty @validator.errors
     end
 
     def test_detects_missing_down_method
       create_test_migrations_without_down
-
+      begin
+        @validator.validate
+      rescue Error
+        # Expected error
+      end
       assert_includes @validator.errors, "20240101000000_create_users.rb: Missing down method for rollback"
     end
 
     def test_detects_missing_timestamps
       create_test_migrations_without_timestamps
-
+      begin
+        @validator.validate
+      rescue Error
+        # Expected error
+      end
       assert_includes @validator.errors, "20240101000000_create_users.rb: Missing timestamps"
     end
 
     def test_detects_missing_foreign_keys
       create_test_migrations_without_foreign_keys
-
+      begin
+        @validator.validate
+      rescue Error
+        # Expected error
+      end
       assert_includes @validator.errors, "20240101000001_create_posts.rb: Missing foreign key for author_id"
     end
 

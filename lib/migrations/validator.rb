@@ -26,10 +26,10 @@ module Migrations
 
     def validate_migration_file(file)
       content = file.read
-      validate_file_structure(content)
-      validate_methods(content)
-      validate_timestamps(content)
-      validate_foreign_keys(content)
+      validate_file_structure(file, content)
+      validate_methods(file, content)
+      validate_timestamps(file, content)
+      validate_foreign_keys(file, content)
     end
 
     private
@@ -53,25 +53,27 @@ module Migrations
       end
     end
 
-    def validate_file_structure(content)
-      @errors << "Migration file must contain a class definition" unless content.include?("class")
-      @errors << "Migration file must contain an 'up' method" unless content.include?("def up")
+    def validate_file_structure(file, content)
+      @errors << "#{file.basename}: Missing class definition" unless content.include?("class")
+      @errors << "#{file.basename}: Missing 'up' method" unless content.include?("def change") || content.include?("def up")
     end
 
-    def validate_methods(content)
-      @errors << "Migration file must contain a 'down' method" unless content.include?("def down")
+    def validate_methods(file, content)
+      return if content.match?(/\s+def\s+down\b/)
+
+      @errors << "#{file.basename}: Missing down method for rollback"
     end
 
-    def validate_timestamps(content)
-      return unless content.include?("create_table") && !content.include?("t.timestamps")
+    def validate_timestamps(file, content)
+      return unless content.match?(/\s+create_table.*do.*\|t\|/m) && !content.match?(/\s+t\.timestamps\b/)
 
-      @errors << "Table creation should include timestamps"
+      @errors << "#{file.basename}: Missing timestamps"
     end
 
-    def validate_foreign_keys(content)
-      return unless content.include?("t.integer :author_id") && !content.include?("add_foreign_key :posts, :authors")
+    def validate_foreign_keys(file, content)
+      return unless content.match?(/\s+t\.integer\s+:author_id\b/) && !content.match?(/\s+t\.references\s+:author.*foreign_key/)
 
-      @errors << "Foreign key columns should have corresponding foreign key constraints"
+      @errors << "#{file.basename}: Missing foreign key for author_id"
     end
 
     def validate_migration_versions
