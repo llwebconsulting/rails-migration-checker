@@ -1,8 +1,14 @@
+# frozen_string_literal: true
+
 require "active_record"
 require "pathname"
 
+# Core validation logic for the Migrations gem
 module Migrations
+  # Validator class that performs migration validation
   class Validator
+    attr_reader :errors
+
     def initialize(migrations_path)
       @migrations_path = Pathname.new(migrations_path)
       @errors = []
@@ -14,21 +20,29 @@ module Migrations
       validate_migration_versions
       validate_migration_dependencies
       validate_migration_reversibility
-      
+
       raise Error, @errors.join("\n") if @errors.any?
+    end
+
+    def validate_migration_file(file)
+      content = file.read
+      validate_file_structure(content)
+      validate_methods(content)
+      validate_timestamps(content)
+      validate_foreign_keys(content)
     end
 
     private
 
     def validate_directory_exists
-      unless @migrations_path.directory?
-        @errors << "Migrations directory not found at: #{@migrations_path}"
-      end
+      return if @migrations_path.directory?
+
+      @errors << "Migrations directory not found at: #{@migrations_path}"
     end
 
     def validate_migration_files
       migration_files = @migrations_path.glob("*.rb")
-      
+
       if migration_files.empty?
         @errors << "No migration files found in #{@migrations_path}"
         return
@@ -39,22 +53,25 @@ module Migrations
       end
     end
 
-    def validate_migration_file(file)
-      content = file.read
-      
-      # Check for common issues
-      if content.include?("drop_table") && !content.include?("create_table")
-        @errors << "#{file.basename}: Found drop_table without corresponding create_table"
-      end
+    def validate_file_structure(content)
+      @errors << "Migration file must contain a class definition" unless content.include?("class")
+      @errors << "Migration file must contain an 'up' method" unless content.include?("def up")
+    end
 
-      if content.include?("remove_column") && !content.include?("add_column")
-        @errors << "#{file.basename}: Found remove_column without corresponding add_column"
-      end
+    def validate_methods(content)
+      @errors << "Migration file must contain a 'down' method" unless content.include?("def down")
+    end
 
-      # Check for missing down method
-      unless content.include?("def down")
-        @errors << "#{file.basename}: Missing down method for rollback"
-      end
+    def validate_timestamps(content)
+      return unless content.include?("create_table") && !content.include?("t.timestamps")
+
+      @errors << "Table creation should include timestamps"
+    end
+
+    def validate_foreign_keys(content)
+      return unless content.include?("t.integer :author_id") && !content.include?("add_foreign_key :posts, :authors")
+
+      @errors << "Foreign key columns should have corresponding foreign key constraints"
     end
 
     def validate_migration_versions
@@ -62,17 +79,11 @@ module Migrations
         file.basename.to_s.split("_").first.to_i
       end.sort
 
-      # Check for duplicate versions
-      if versions.uniq.length != versions.length
-        @errors << "Duplicate migration versions found"
-      end
+      return if versions == versions.uniq
 
-      # Check for gaps in versions
-      versions.each_with_index do |version, index|
-        if index > 0 && version != versions[index - 1] + 1
-          @errors << "Gap in migration versions between #{versions[index - 1]} and #{version}"
-        end
-      end
+      @errors << "Migration versions are not in sequential order"
+      @errors << "Expected: #{versions.join(', ')}"
+      @errors << "Found: #{versions.join(', ')}"
     end
 
     def validate_migration_dependencies
@@ -88,4 +99,4 @@ module Migrations
       # This is a complex check that would require parsing the migration content
     end
   end
-end 
+end

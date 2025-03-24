@@ -1,7 +1,8 @@
-#!/usr/bin/env ruby
 # frozen_string_literal: true
+
+#!/usr/bin/env ruby
 
 require "bundler/setup"
 require "migrations/cli"
 
-Migrations::CLI.start(ARGV) 
+Migrations::CLI.start(ARGV)

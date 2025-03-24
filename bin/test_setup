@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Function to test a specific Ruby and Rails version combination
+test_version() {
+  local ruby_version=$1
+  local rails_version=$2
+  
+  echo "Testing Ruby $ruby_version with Rails $rails_version"
+  
+  # Remove existing Gemfile.lock
+  rm -f Gemfile.lock
+  
+  # Set up Ruby version
+  rbenv local $ruby_version
+  
+  # Configure Bundler
+  echo "Configuring Bundler..."
+  bundle config set --local deployment false
+  
+  # Install dependencies
+  echo "Installing dependencies..."
+  bundle update rails --jobs 4 --retry 3
+  bundle install
+  
+  # Run tests
+  echo "Running tests..."
+  bundle exec rake test
+  
+  echo "✅ Tests passed for Ruby $ruby_version with Rails $rails_version"
+  echo "----------------------------------------"
+}
+
+# Test combinations
+test_version "3.0.0" "6.1.0"
+test_version "3.1.0" "6.1.0"
+test_version "3.0.0" "7.0.0"
+test_version "3.1.0" "7.0.0"
+test_version "3.2.0" "7.0.0"
+test_version "3.1.0" "7.1.0"
+test_version "3.2.0" "7.1.0"
+test_version "3.3.0" "7.1.0" 
