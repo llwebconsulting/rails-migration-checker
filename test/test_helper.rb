@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 require "migrations"
 require "minitest/autorun"
@@ -24,8 +26,13 @@ Rails.application.initialize!
 module TestRakeSetup
   def setup
     super
-    Rake::Task.clear
     Rake.application = Rake::Application.new
-    Migrations::Tasks.load_tasks
+    Rake::Task.clear
+    load File.expand_path("../../lib/migrations/tasks.rake", __dir__)
   end
-end 
+
+  def teardown
+    super
+    Rake.application = nil
+  end
+end

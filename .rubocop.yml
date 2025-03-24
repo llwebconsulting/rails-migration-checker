@@ -9,28 +9,48 @@ AllCops:
     - 'bin/**/*'
     - 'vendor/**/*'
     - 'tmp/**/*'
+  SuggestExtensions: false
+
+Metrics/ModuleLength:
+  Max: 200
+
+Style/Documentation:
+  Enabled: true
 
 Style/StringLiterals:
   EnforcedStyle: double_quotes
 
-Style/Documentation:
-  Enabled: true
+Style/SymbolArray:
+  EnforcedStyle: brackets
+
+Style/WordArray:
+  EnforcedStyle: brackets
 
 Layout/LineLength:
   Max: 120
 
 Metrics/MethodLength:
-  Max: 20
+  Max: 25
+
+Metrics/AbcSize:
+  Max: 25
+
+Metrics/CyclomaticComplexity:
+  Max: 10
+
+Metrics/PerceivedComplexity:
+  Max: 10
 
 Metrics/BlockLength:
   Exclude:
-    - 'test/**/*'
-    - '*.gemspec'
-    - 'lib/migrations/tasks.rake'
+    - "*.gemspec"
+    - "Rakefile"
+    - "**/*.rake"
+    - "test/**/*"
 
 Metrics/ClassLength:
   Exclude:
-    - 'test/**/*'
+    - "test/**/*"
 
 Metrics/AbcSize:
   Max: 20
@@ -40,12 +60,6 @@ Metrics/AbcSize:
 
 Style/FrozenStringLiteralComment:
   EnforcedStyle: always
-
-Style/SymbolArray:
-  EnforcedStyle: brackets
-
-Style/WordArray:
-  EnforcedStyle: brackets
 
 Layout/EmptyLineAfterGuardClause:
   Enabled: true

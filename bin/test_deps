@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -e
+
+echo "Testing dependency setup..."
+
+# Remove existing Gemfile.lock
+rm -f Gemfile.lock
+
+# Configure Bundler
+echo "Configuring Bundler..."
+bundle config set --local deployment false
+
+# Try to install dependencies
+echo "Installing dependencies..."
+bundle install
+
+echo "Updating Rails..."
+bundle update rails --jobs 4 --retry 3
+
+echo "Running bundle check..."
+bundle check
+
+echo "✅ Dependency setup successful!" 
